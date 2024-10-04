@@ -1,18 +1,18 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <NavBar />
+  <div v-if="user" class="home mt-5">
+      <h1>Welcome {{ this.user.username }}</h1>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
-
+import userMixin from '@/mixins/userMixin';
+import NavBar from '@/components/NavBar.vue'
 export default {
   name: 'HomeView',
   components: {
-    HelloWorld
-  }
+    NavBar
+  },
+  mixins: [userMixin],
 }
 </script>

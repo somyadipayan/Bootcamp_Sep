@@ -1,4 +1,5 @@
 <template>
+<NavBar />
     <div class="container mt-5">
         <h2>Register</h2>
         <form @submit.prevent="register">
@@ -26,8 +27,12 @@
 
 
 <script>
+import NavBar from '@/components/NavBar.vue'
 export default {
     name: "RegisterPage",
+    components: {
+        NavBar
+    },
     data() {
         return {
             username: '',
@@ -39,6 +44,7 @@ export default {
     methods: {
         async register() {
             try {
+                // Making an API call from frontend
                 const response = await fetch('http://127.0.0.1:5000/register', {
                     method: 'POST',
                     headers: {
@@ -51,12 +57,14 @@ export default {
                         role: this.isManager ? 'manager' : 'user'
                     })
                 })
+                // Parsing the response JSON
                 const data = await response.json()
                 if (!response.ok) {
                     alert(data.error)
                 }
                 else {
                     alert(data.message)
+                    // Push to login page
                     this.$router.push('/')
                 }
             } catch (error) {

@@ -2,6 +2,9 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
+import CreateCategory from '@/views/CreateCategory.vue'
+import AllCategories from '@/views/AllCategories.vue'
+import UpdateCategory from '@/views/UpdateCategory.vue'
 
 const routes = [
   {
@@ -18,6 +21,21 @@ const routes = [
     path: '/register',
     name: 'register',
     component: RegisterPage
+  },
+  {
+    path: '/categories',
+    name: 'categories',
+    component: AllCategories
+  },
+  {
+    path: '/create-category',
+    name: 'createcategory',
+    component: CreateCategory
+  },
+  {
+    path: '/update-category/:id',
+    name: 'updatecategory',
+    component: UpdateCategory
   },
   {
     path: '/about',

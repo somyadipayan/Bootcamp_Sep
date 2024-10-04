@@ -18,11 +18,10 @@ export default {
           this.role = null;
           return;
         }
-            try {
+          try {
             this.user = await this.getUserDetails();
             console.log(this.user)
-            this.isLoggedin = true;
-            this.role = this.user.role;
+ 
           } catch (error) {
             console.log(error);
           }       
@@ -37,10 +36,12 @@ export default {
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.error);
+        console.log(data.error);
         return null;
       } else {
         console.log(data.message);
+        this.isLoggedin = true;
+        this.role = data.user.role;
         return data.user;
       }
     },

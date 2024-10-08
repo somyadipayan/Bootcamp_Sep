@@ -47,3 +47,40 @@ class Product(db.Model):
         self.creator_id = creator_id
         self.unit = unit
         self.quantity = quantity
+
+class ShoppingCart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='shopping_carts')
+    cart_items = db.relationship('CartItems', back_populates='shopping_cart', cascade="all, delete-orphan")
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+class CartItems(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    shopping_cart_id = db.Column(db.Integer, db.ForeignKey('shopping_cart.id'), nullable=False)
+    shopping_cart = db.relationship('ShoppingCart', back_populates='cart_items')
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    product = db.relationship('Product', backref='cart_items')
+    quantity = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, shopping_cart_id, product_id, quantity):
+        self.shopping_cart_id = shopping_cart_id
+        self.product_id = product_id
+        self.quantity = quantity
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='orders')
+    order_date = db.Column(db.DateTime, default=datetime.now)
+    total_amount = db.Column(db.Float, nullable=False)
+
+class OrderItems(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    order = db.relationship('Order', backref='order_items')
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    product = db.relationship('Product', backref='order_items')
+    quantity = db.Column(db.Integer, nullable=False)

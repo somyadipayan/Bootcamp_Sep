@@ -18,6 +18,8 @@
                 <td><a :href="'http://127.0.0.1:5000/view-catalogue/' + category.id" target="_blank">{{ category.pdf }}</a></td>
                 <td v-if="role === 'admin'" class="btn-group">
                     <button type="button" class="btn btn-light" @click="editCategory(category.id)">Edit</button>
+                    <router-link type="button" class="btn btn-dark" to="/">View Products</router-link>
+                    <router-link type="button" class="btn btn-dark" :to="`/add-product/${category.id}`">Add Products</router-link>
                     <button type="button" class="btn btn-light" @click="deleteCategory(category.id)">Delete</button>
                 </td>
             </tr>

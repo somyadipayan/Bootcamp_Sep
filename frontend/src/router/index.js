@@ -5,6 +5,7 @@ import LoginPage from '@/views/LoginPage.vue'
 import CreateCategory from '@/views/CreateCategory.vue'
 import AllCategories from '@/views/AllCategories.vue'
 import UpdateCategory from '@/views/UpdateCategory.vue'
+import CreateProduct from '@/views/CreateProduct.vue'
 
 const routes = [
   {
@@ -36,6 +37,11 @@ const routes = [
     path: '/update-category/:id',
     name: 'updatecategory',
     component: UpdateCategory
+  },
+  {
+    path: '/add-product/:id',
+    name: 'createproduct',
+    component: CreateProduct
   },
   {
     path: '/about',

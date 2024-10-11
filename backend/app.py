@@ -4,6 +4,8 @@ from models import *
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
 from werkzeug.utils import secure_filename
+from tools import workers, task, mailer
+import os
 
 
 app = Flask(__name__)
@@ -13,6 +15,17 @@ app.config.from_object(Config)
 db.init_app(app)
 bcrypt.init_app(app)
 jwt = JWTManager(app)
+
+# Configuring Celery
+celery = workers.celery
+celery.conf.update(
+    broker_url=app.config["CELERY_BROKER_URL"],
+    result_backend=app.config["CELERY_RESULT_BACKEND"],
+)
+
+celery.Task = workers.ContextTask
+
+app.app_context().push()
 
 def create_admin():
     existing_admin = User.query.filter_by(role="admin").first()
@@ -37,6 +50,8 @@ CORS(app, supports_credentials=True)
 # Testing routes
 @app.route("/")
 def hello():
+    result = task.sendHi.delay(1)
+    print(result.get())
     return "Hello World!"
 
 # REGISTER API
@@ -142,7 +157,7 @@ import os
 def create_category():
     # Restrcting this to only admins
     currentUser = get_jwt_identity()
-    if currentUser["role"] != "admin" or currentUser["role"] != "manager":
+    if currentUser["role"] != "admin":
         return jsonify({"error":"Unauthorized"}), 401
 
     name = request.form.get("name")
@@ -309,11 +324,10 @@ def create_product():
     except Exception as e:
         db.session.rollback()
         return {"error": "Failed to create product"}, 500
-
-# GET ALL PRODUCTS
-@app.route('/products', methods=['GET'])
-def get_products():
-    products = Product.query.all()
+# Get all products in a category
+@app.route('/category/<int:id>/products', methods=['GET'])
+def get_products_by_category(id):
+    products = Product.query.filter_by(category_id=id).all()
     products_data = []
     for product in products:
         products_data.append({
@@ -326,6 +340,29 @@ def get_products():
             "creator_email":product.creator_email
         })
     return jsonify(products_data), 200
+
+# GET ALL PRODUCTS
+@app.route('/products', methods=['GET'])
+def get_products():
+    categories = Category.query.all()
+    data = []
+    for category in categories:
+        products = []
+        for product in category.products:
+            products.append({
+                "id":product.id,
+                "name":product.name,
+                "unit":product.unit,
+                "price":product.price,
+                "quantity":product.quantity,
+            })
+        data.append({
+            "id":category.id,
+            "name":category.name,
+            "pdf":category.category_document_path,
+            "products":products
+        })
+    return jsonify(data), 200
 
 
 # GET SINGLE PRODUCT BY IT'S ID
@@ -538,5 +575,7 @@ def place_order():
     except Exception as e:
         db.session.rollback()
         return {"error": f"Failed to place order: {str(e)}"}, 500
+    
+
 if __name__ == "__main__":
     app.run(debug=True)

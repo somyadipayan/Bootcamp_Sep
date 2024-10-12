@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, Response
 from config import Config
 from models import *
 from flask_cors import CORS
@@ -6,6 +6,10 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from werkzeug.utils import secure_filename
 from tools import workers, task, mailer
 import os
+import matplotlib.pyplot as plt
+import io
+import csv
+from flask_caching import Cache
 
 
 app = Flask(__name__)
@@ -15,6 +19,8 @@ app.config.from_object(Config)
 db.init_app(app)
 bcrypt.init_app(app)
 jwt = JWTManager(app)
+cache = Cache(app)
+mailer.init_app(app)
 
 # Configuring Celery
 celery = workers.celery
@@ -50,8 +56,9 @@ CORS(app, supports_credentials=True)
 # Testing routes
 @app.route("/")
 def hello():
-    result = task.sendHi.delay(1)
-    print(result.get())
+    mailer.send_email("fXb7v@example.com", "Test", "Hello World")
+    # result = task.sendHi.delay(1)
+    # print(result.get())
     return "Hello World!"
 
 # REGISTER API
@@ -191,6 +198,7 @@ def create_category():
     
 # Read all categories
 @app.route("/categories", methods=["GET"])
+@cache.cached(timeout=600)
 def get_categories():
     categories = Category.query.all()
     categories_data = []
@@ -576,6 +584,95 @@ def place_order():
         db.session.rollback()
         return {"error": f"Failed to place order: {str(e)}"}, 500
     
+# ADMIN DASHBOARD
+# Graphs, CSV Reports, etc.
+#
+@app.route('/order-history-report', methods=['GET'])
+@jwt_required()
+def order_history_report():
+    this_user = get_jwt_identity()
+    if this_user["role"] != "admin":
+        return {"error": "You are not supposed to do this!"}, 401
+    orders = Order.query.all()
+    total_orders = len(orders)
+    total_amount = sum(order.total_amount for order in orders)
+    total_items = sum(len(order.order_items) for order in orders)
+
+    order_dates = [order.order_date.strftime('%Y-%m-%d') for order in orders]
+    order_counts = {date: order_dates.count(date) for date in set(order_dates)}
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(order_counts.keys(), order_counts.values())
+    plt.xlabel('Date')
+    plt.ylabel('Number of Orders')
+    plt.title('Order History Report')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    return jsonify({
+        'total_orders': total_orders,
+        'total_amount': total_amount,
+        'total_items': total_items
+    })
+  
+@app.route('/order-history-report-graph', methods=['GET'])
+def order_history_report_graph():
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    return send_file(img, mimetype='image/png')
+
+
+@app.route('/order-category-pie-chart', methods=['GET'])
+def order_category_pie_chart():
+
+    orders = Order.query.all()
+
+    category_counts = {}
+    for order in orders:
+        for item in order.order_items:
+            category_name = item.product.category.name
+            if category_name not in category_counts:
+                category_counts[category_name] = 0
+            category_counts[category_name] += item.quantity
+
+    plt.figure(figsize=(10, 6))
+    plt.pie(category_counts.values(), labels=category_counts.keys(), autopct='%1.1f%%', startangle=140)
+    plt.axis('equal')
+    plt.title('Orders from Different Categories')
+
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    return send_file(img, mimetype='image/png')
+
+def generate_csv_report():
+    orders = Order.query.all()
+    csv_buffer = io.StringIO()
+    csv_writer = csv.writer(csv_buffer)
+
+    # Write header row
+    csv_writer.writerow(['Order ID','Order Date', 'User Name', 'Total Amount'])
+
+    # Write order details
+    for order in orders:
+        csv_writer.writerow([order.id, order.order_date.strftime('%Y-%m-%d'), order.user.username, order.total_amount])
+    return csv_buffer.getvalue()
+
+@app.route('/download-order-csv', methods=['GET'])
+def download_order_csv():
+    csv_data = generate_csv_report()
+    return Response(csv_data, mimetype='text/csv', headers={'Content-Disposition': 'attachment;filename=orders.csv'})
+
+@app.route('/clear_cache', methods=['POST'])
+def clear_cache():
+    cache.clear()
+    return jsonify({'message': 'Cache cleared successfully'}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from datetime import datetime
+from datetime import datetime, timedelta
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -11,7 +11,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     role = db.Column(db.String(80), nullable=False)
     password = db.Column(db.String(80), nullable=False)
-    lastLoggedIn = db.Column(db.DateTime, default=datetime.now)
+    lastLoggedIn = db.Column(db.DateTime, default=datetime.now) 
 
     def __init__(self, username, email, role, password):
         self.username = username

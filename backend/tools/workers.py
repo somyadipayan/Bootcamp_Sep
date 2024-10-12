@@ -9,4 +9,3 @@ class ContextTask(celery.Task):
             return self.run(*args, **kwargs)
 
 
-

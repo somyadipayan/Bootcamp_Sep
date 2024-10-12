@@ -6,6 +6,7 @@ import CreateCategory from '@/views/CreateCategory.vue'
 import AllCategories from '@/views/AllCategories.vue'
 import UpdateCategory from '@/views/UpdateCategory.vue'
 import CreateProduct from '@/views/CreateProduct.vue'
+import AdminDashboard from '@/views/AdminDashboard.vue'
 
 const routes = [
   {
@@ -32,6 +33,11 @@ const routes = [
     path: '/create-category',
     name: 'createcategory',
     component: CreateCategory
+  },
+  {
+    path: '/admin-dashboard',
+    name: 'admindashboard',
+    component: AdminDashboard
   },
   {
     path: '/update-category/:id',

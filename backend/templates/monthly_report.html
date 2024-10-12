@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Report</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
+        }
+
+        .order-details {
+            margin-top: 20px;
+        }
+
+        .order {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .order-date {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-names {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .total-order-value {
+            font-size: 16px;
+            color: #28a745;
+        }
+
+        .total-amount-spent {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Monthly Report</h1>
+        <p>This is report for {{user.username}}</p>
+        <div class="order-details">
+            {% if order_details | length == 0 %}
+            <div class="order">No orders found</div>
+            {% else %}
+            {% for order in order_details %}
+            <div class="order"> 
+                <div class="order-date">{{ order.order_date }}</div>
+                <ul class="product-names">Products: 
+                    {% for product_name in order.product_names %}
+                    <li>{{ product_name }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="total-order-value">Total Order Value: Rs.{{ order.total_order_value }}</div>
+            </div>
+            {% endfor %}
+            <div class="total-amount-spent">Total Amount Spent in Last Month: Rs.{{ total_amount_spent }}</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

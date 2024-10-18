@@ -7,6 +7,29 @@ import AllCategories from '@/views/AllCategories.vue'
 import UpdateCategory from '@/views/UpdateCategory.vue'
 import CreateProduct from '@/views/CreateProduct.vue'
 import AdminDashboard from '@/views/AdminDashboard.vue'
+import { checkUserRole } from '@/utils/checkRole'
+
+async function checkAdmin(to, from, next) {
+  const userRole = await checkUserRole();
+  if (userRole !== 'admin') {
+    alert("You don't have permission to access this page");
+    next({ name: 'login' });
+  } else {
+    next();
+  }
+}
+
+
+async function checkManager(to, from, next) {
+  const userRole = await checkUserRole();
+  if (userRole !== 'manager') {
+    alert("You don't have permission to access this page");
+    next({ name: 'login' });
+  } else {
+    next();
+  }
+}
+
 
 const routes = [
   {
@@ -37,7 +60,9 @@ const routes = [
   {
     path: '/admin-dashboard',
     name: 'admindashboard',
-    component: AdminDashboard
+    component: AdminDashboard,
+    meta: { requiresAuth: true },
+    beforeEnter: checkAdmin,
   },
   {
     path: '/update-category/:id',

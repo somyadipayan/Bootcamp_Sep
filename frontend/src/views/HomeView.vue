@@ -47,16 +47,16 @@ export default {
     this.getdata()
   },
   computed: {
-      filteredCategories() {
-      const searchTerm = this.searchQuery.toLowerCase();
-      return this.categories.map(category => {
-        const filteredProducts = category.products.filter(product => 
-          product.name.toLowerCase().includes(searchTerm)
-        );
-        return { ...category, products: filteredProducts };
-      }).filter(category => category.products.length > 0);
-    }
-  },
+          filteredCategories() {
+          const searchTerm = this.searchQuery.toLowerCase();
+          return this.categories.map(category => {
+            const filteredProducts = category.products.filter(product => 
+              product.name.toLowerCase().includes(searchTerm)
+            );
+            return { ...category, products: filteredProducts };
+          }).filter(category => category.products.length > 0);
+        }
+      },
   methods: {
     async getdata() {
       try {
